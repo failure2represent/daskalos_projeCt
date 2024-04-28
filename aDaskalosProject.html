@@ -40,36 +40,61 @@ H3 {
 </STYLE>
 <HEAD>
 <TITLE>
-database of graphics cards.</TITLE>
+database of graphics cards</TITLE>
 </HEAD>
 <BODY>
-<H1>database of graphics cards.</H1>
+<H1>database of graphics cards</H1>
 <B>author&#40;s&#41;: </B>Valerii Prokhorov
 <BR>
 <P>
+Tento projekt je system pro spravu zakazniku&#44; nakupu a vyrobcu elektroniky&#40;tedy PC videokaret&#41;&#44; ve fiktivnim malem e-shopu.<BR>
 <BR>
+System umoznuje sledovani nakupu&#44; detailni informace o produktech a spravu udaju o zakaznicich a majitelich firem.<BR>
 <BR>
-dotaz 3: forgot &#40;NEED NEW ONe through 2 classes&#41;<BR>
-dotaz4 &#40;hard through 3-4 classed&#41;: ???<BR>
+Majitel obchodu muze sledovat&#44; ktere videokarty jsou nejzadanejsi a ktere modely by mely byt z nabidky vyrazeny kvuli zastaralosti nebo nedostatecne poptavce.<BR>
 <BR>
+V databazi zakazniku lze vyhledavat podle toho&#44; jestli si koupili urcite modely videokaret&#44; jako RX580 nebo RTX 2060&#44; nebo podle celkove ceny jejich nakupu.<BR>
 <BR>
-rule1: vsichni zakaznici maji byt 18&#43; let<BR>
-rule 2: ???<BR>
+Funkce pro sledovani produktu umoznuje kontrolovat dostupnost a historii cen videokaret&#44; jejich datum vyroby a spojeni s konkretnimi vyrobci.<BR>
 <BR>
+System take zajistuje&#44; ze vsichni vlastnici firem jsou starsi 18 let&#44; coz je zakladni pravni pozadavek pro vlastnictvi firmy.<BR>
 <BR>
-&#43;<BR>
+Dale nabizi nastroje pro overeni&#44; ze vsechny videokarty maji kladnou cenu&#44; coz zabranuje chybam pri zadavani dat.<BR>
 <BR>
-description {check moodle}
+System ma velke moznosti pro rozsireni a skalovani&#44; vcetne pridani dalsich produktovych kategorii nebo rozsireni na dalsi typy.
 </P>
 
 <BR>
 <HR>
 <H2>Workspace</H2>
-<PRE>FirmaSet select: [:s | s velikost = &#39;Stredni&#39;]
+<PRE>&quot;--- DOTAZY ---&quot;
 
-ZakaznikSet select: [:s | s nakup anySatisfy: [ :v | v model = &#39;RX580&#39; ] ]
+&quot;Stredne velke Firmy&quot;
 
-VlastnikSet </PRE>
+FirmaSet select: [:s | s velikost = &#39;Stredni&#39;]
+
+&quot;Zakaznici&#44; kteri si zakoupili model RX580&quot;
+
+ZakaznikSet select: [:z | z nakup anySatisfy: [:n | n polozka anySatisfy: [:v | v model = &#39;RX580&#39;]]]
+
+&quot;Cele jmeno zakazniku&#44; kteri maji nakup vetsi nez 5000 a maji polozku model VideoKarty RTX2060&quot;
+
+&#40;ZakaznikSet select: [:z | z nakup anySatisfy: [:n | &#40;n castka &gt; 5000&#41; and: [n polozka anySatisfy: [:v | v model = &#39;RTX 2060&#39;]]]]&#41; collect: [:z | z celeJmeno]
+
+
+&quot;---- PRAVIDLA ----&quot;
+
+&quot;VideoKarty maji nezapornou cenu&quot;
+
+&#40;VideoKartaSet select: [:v | v cena &lt;0]&#41; isEmpty
+
+&quot;Vlastniky firem maji vek vetsi nez 18 let&quot;
+
+&#40;VlastnikSet select: [:v | v rokNarozeni &gt;= &#40;Date today year - 18&#41;]&#41; isEmpty
+
+&quot;Zakaznici maji datum posledniho nakupu nevetsi nez dnesni datum&quot;
+
+&#40;ZakaznikSet select: [:z | z datumPoslednihoNakupu &gt; Date today]&#41; collect: [:z | z celeJmeno]</PRE>
 <H4>Workspace Objects</H4>
 <UL>
 
@@ -242,7 +267,9 @@ prijmeni:
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+Slouzi jako zakladni trida pro reprezentaci osob v aplikaci. <BR>
+<BR>
+Obsahuje zakladni informace relevantni pro jakoukoli osobu v systemu.
 </P>
 </TD>
 </TR>
@@ -357,7 +384,9 @@ vyrobce:
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+VideoKarta obsahuje udaje o modelu&#44; cenu&#44; datum vyroby a vyrobce.<BR>
+<BR>
+Zahrnuje metody pro vypocet slev a overeni&#44; zda je karta zastarala.
 </P>
 </TD>
 </TR>
@@ -459,7 +488,9 @@ vlastnik
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+Firma uchovava informace o firmach vcetne nazvu&#44; zeme puvodu a poctu zamestnancu.<BR>
+<BR>
+Rovnez se zde urcuje velikost firmy &#40;mala&#44; stredni&#44; velka&#41; na zaklade poctu zamestnancu.
 </P>
 </TD>
 </TR>
@@ -527,7 +558,7 @@ polozka
 </CODE>
 <BR>
 <CODE>
-vlastnik
+zakaznik
 </CODE>
 <BR>
 </TD></TR>
@@ -535,7 +566,7 @@ vlastnik
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+Nakup zaznamenava informace o nakupu&#44; vcetne seznamu polozek a celkove ceny nakupu.
 </P>
 </TD>
 </TR>
@@ -562,12 +593,12 @@ initialize
      polozka := Bag new.</PRE>
 <LI>
 <B><CODE>
-vlastnik
+zakaznik
 </CODE></B>
 <PRE>
-	| vlastnici |
-	vlastnici := Zakaznik allInstances select: [:z | z nakup includes: self].
-	^vlastnici size &gt; 0 ifTrue: [vlastnici first celeJmeno]</PRE>
+	| zakaznik |
+	zakaznik := Zakaznik allInstances select: [:z | z nakup includes: self].
+	^zakaznik size &gt; 0 ifTrue: [zakaznik first celeJmeno]</PRE>
 </UL>
 <TABLE BORDER="0" CELLPADDING="3" CELLSPACING="0" WIDTH=100%>
 <TR>
@@ -620,7 +651,7 @@ zodpovednost:
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+Vlastnik reprezentuje majitele firem&#44; vcetne jejich veku a spojeni se spolecnostmi&#44; za ktere jsou zodpovedni.
 </P>
 </TD>
 </TR>
@@ -660,7 +691,7 @@ datumPoslednihoNakupu :Date
 </CODE>
 <BR>
 <CODE>
-nakup :Bag
+nakup :List
 </CODE>
 <BR>
 </TD></TR>
@@ -682,16 +713,12 @@ initialize
 nakup
 </CODE>
 <BR>
-<CODE>
-utraceno
-</CODE>
-<BR>
 </TD></TR>
 </TABLE>
 </TD>
 <TD VALIGN="TOP">
 <P>
-
+Zakaznik spravuje udaje o klientech&#44; jejich jmena&#44; nakupy a datum posledniho nakupu.
 </P>
 </TD>
 </TR>
@@ -706,17 +733,8 @@ initialize
 &quot;generated by Daskalos&quot;
 
      super initialize.
-     nakup := Bag new.
+     nakup := List new.
      datumPoslednihoNakupu := nil.</PRE>
-<LI>
-<B><CODE>
-utraceno
-</CODE></B>
-<PRE>
-	| total |
-	total := 0.
-	nakup do: [:eachNakup | total := total &#43; eachNakup castka].
-	^total</PRE>
 </UL>
 <HR>
 <H2>Links</H2>
@@ -732,6 +750,6 @@ Generated by Daskalos - Object Modeling Tutor &#40;C&#41; 2006 V. Merunka
 
 <BR>
 <CODE>
-25.04.2024&#1075;.
+28.04.2024&#1075;.
 </CODE>
 </BODY></HTML>
